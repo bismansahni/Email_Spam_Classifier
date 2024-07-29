@@ -1,12 +1,18 @@
-from datasets import load_dataset
 import pandas as pd
 
 def load_data():
-    dataset = load_dataset("TrainingDataPro/email-spam-classification")
-    train_dataset = dataset['train']
-    df = pd.DataFrame(train_dataset)
-    return df
+    # Load the datasets
+    train_df = pd.read_csv('train_set.csv')
+    val_df = pd.read_csv('val_set.csv')
+    test_df = pd.read_csv('test_set.csv')
+    
+    return train_df, val_df, test_df
 
 if __name__ == "__main__":
-    df = load_data()
-    print(df.head())
+    train_df, val_df, test_df = load_data()
+    print("Training Set:")
+    print(train_df.head())
+    print("\nValidation Set:")
+    print(val_df.head())
+    print("\nTest Set:")
+    print(test_df.head())

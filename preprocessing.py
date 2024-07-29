@@ -20,6 +20,15 @@ def preprocess_dataframe(df):
 
 if __name__ == "__main__":
     import data_loader
-    df = data_loader.load_data()
-    df = preprocess_dataframe(df)
-    print(df.head())
+    train_df, val_df, test_df = data_loader.load_data()
+    
+    train_df = preprocess_dataframe(train_df)
+    val_df = preprocess_dataframe(val_df)
+    test_df = preprocess_dataframe(test_df)
+    
+    print("Training Set:")
+    print(train_df.head())
+    print("\nValidation Set:")
+    print(val_df.head())
+    print("\nTest Set:")
+    print(test_df.head())

@@ -7,13 +7,7 @@ from keras.layers import Dense, Dropout
 import joblib
 import tensorflow as tf
 
-def train_model(df):
-    vectorizer = TfidfVectorizer()
-    X = vectorizer.fit_transform(df['combined_text']).toarray()
-    y = df['type'].apply(lambda x: 1 if x == 'spam' else 0).values
-
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
+def train_model(X_train, y_train, X_val, y_val):
     print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
 
     model = Sequential([
@@ -26,15 +20,17 @@ def train_model(df):
 
     model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
 
-    model.fit(X_train, y_train, epochs=10, batch_size=32, validation_data=(X_test, y_test))
+    model.fit(X_train, y_train, epochs=800, batch_size=10, validation_data=(X_val, y_val))
 
+    return model
+
+def evaluate_model(model, X_test, y_test):
     loss, accuracy = model.evaluate(X_test, y_test)
+    return accuracy
 
-    # Save the model and vectorizer
+def save_model_and_vectorizer(model, vectorizer):
     model.save('spam_classifier_model.h5')
     joblib.dump(vectorizer, 'vectorizer.pkl')
-
-    return model, vectorizer, accuracy
 
 def load_model_and_vectorizer():
     model = keras.models.load_model('spam_classifier_model.h5')
@@ -52,8 +48,32 @@ if __name__ == "__main__":
     import data_loader
     import preprocessing
 
-    df = data_loader.load_data()
-    df = preprocessing.preprocess_dataframe(df)
-    trained_model, vectorizer, accuracy = train_model(df)
+    # Load datasets
+    train_df, val_df, test_df = data_loader.load_data()
+
+    # Preprocess datasets
+    train_df = preprocessing.preprocess_dataframe(train_df)
+    val_df = preprocessing.preprocess_dataframe(val_df)
+    test_df = preprocessing.preprocess_dataframe(test_df)
+
+    # Vectorize datasets
+    vectorizer = TfidfVectorizer()
+    X_train = vectorizer.fit_transform(train_df['combined_text']).toarray()
+    y_train = train_df['type'].apply(lambda x: 1 if x == 'spam' else 0).values
+
+    X_val = vectorizer.transform(val_df['combined_text']).toarray()
+    y_val = val_df['type'].apply(lambda x: 1 if x == 'spam' else 0).values
+
+    X_test = vectorizer.transform(test_df['combined_text']).toarray()
+    y_test = test_df['type'].apply(lambda x: 1 if x == 'spam' else 0).values
+
+    # Train model
+    model = train_model(X_train, y_train, X_val, y_val)
+
+    # Evaluate model
+    accuracy = evaluate_model(model, X_test, y_test)
+
+    # Save model and vectorizer
+    save_model_and_vectorizer(model, vectorizer)
 
     print(f"Accuracy: {accuracy}")
