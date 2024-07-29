@@ -13,7 +13,9 @@ def preprocess_text(text):
     return ' '.join(filtered_tokens)
 
 def preprocess_dataframe(df):
-    df['text'] = df['text'].apply(preprocess_text)
+    # Combine title and text
+    df['combined_text'] = df['title'] + " " + df['text']
+    df['combined_text'] = df['combined_text'].apply(preprocess_text)
     return df
 
 if __name__ == "__main__":
@@ -21,5 +23,3 @@ if __name__ == "__main__":
     df = data_loader.load_data()
     df = preprocess_dataframe(df)
     print(df.head())
-
-
